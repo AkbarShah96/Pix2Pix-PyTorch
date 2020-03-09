@@ -3,13 +3,7 @@ This is the main training file which governs the training loop
 """
 
 "Imports"
-import os
-import time
-import torch
-import argparse
-import numpy as np
-import torch.nn as nn
-from utils import args_parser
+from training.utils import args_parser
 
 
 
