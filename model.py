@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 
 class down_sample(nn.Module):
-    def __init__(self,input_nc, ngf, batch_norm):
+    def __init__(self,input_nc, ngf, batch_norm = True):
         """
         This class down samples through the network
         :param input_nc: int
@@ -57,18 +57,25 @@ class up_sample(nn.Module):
 
 
 class Generator(nn.Module):
-    def __init__(self, ngf, ndf, input_nc, output_nc, batch_norm):
+    def __init__(self, ngf,input_nc, output_nc, batch_norm = False):
+        """
+        This is a Generator architecture with skip connections.
+        :param ngf: number of filters
+        :param input_nc: number of input channels
+        :param output_nc: number of output channels
+        :param batch_norm: use batch norm
+        """
         super(Generator, self).__init__()
-
         self.down_stack = nn.Sequential(
-                        down_sample(input_nc, ngf, batch_norm),
-                        down_sample(ngf, ngf * 2, batch_norm),
-                        down_sample(ngf * 2, ngf * 4, batch_norm),
-                        down_sample(ngf * 4, ngf * 8, batch_norm),
-                        down_sample(ngf * 8, ngf * 8, batch_norm),
-                        down_sample(ngf * 8, ngf * 8, batch_norm),
-                        down_sample(ngf * 8, ngf * 8, batch_norm),
-                        down_sample(ngf * 8, ngf * 8, batch_norm))
+                        down_sample(input_nc, ngf, batch_norm=False),
+                        down_sample(ngf, ngf * 2),
+                        down_sample(ngf * 2, ngf * 4),
+                        down_sample(ngf * 4, ngf * 8),
+                        down_sample(ngf * 8, ngf * 8),
+                        down_sample(ngf * 8, ngf * 8),
+                        down_sample(ngf * 8, ngf * 8),
+                        down_sample(ngf * 8, ngf * 8,)
+        )
 
         self.up_stack = nn.Sequential(
                         up_sample(ngf * 8, ngf * 8, drop_out= True),
@@ -80,7 +87,7 @@ class Generator(nn.Module):
                         up_sample(ngf * 2, ngf))
 
         self.last = nn.Sequential(
-            nn.ConvTranspose2d(ngf, output_nc, stride=2, padding='same'),
+            nn.ConvTranspose2d(ngf, output_nc,kernel_size=4, stride=2, padding='same'),
             nn.Tanh()
         )
     def forward(self, x):
@@ -99,5 +106,58 @@ class Generator(nn.Module):
 
         return self.last(x)
 
+class NLayerDiscriminator(nn.Module):
+    """Defines a PatchGAN discriminator, adopted from Junyaz
+       Added comments and cleaned code.
+       The result of a PatchGAN is a feature map which tells us if each patch is True or False
+    """
+
+    def __init__(self, input_nc, ndf=64, n_layers=3, norm_layer=nn.BatchNorm2d):
+        """Construct a PatchGAN discriminator
+        Parameters:
+            input_nc (int)  -- the number of channels in input images
+            ndf (int)       -- the number of filters in the last conv layer
+            n_layers (int)  -- the number of conv layers in the discriminator
+            norm_layer      -- normalization layer
+        """
+        super(NLayerDiscriminator, self).__init__()
+        "Start a sequence with conv layer + leakyRelu"
+        sequence = [nn.Conv2d(input_nc, ndf, kernel_size=4, stride=2, padding=1),
+                    nn.LeakyReLU(0.2, True)]
+        "Initialise constants that will control the number of filters in each layer as we progress"
+        nf_mult = 1
+        nf_mult_prev = 1
+
+        "Depending on n_layers we will build a discriminator"
+        for n in range(1, n_layers):
+            "Update Values to have correct channel sizes"
+            nf_mult_prev = nf_mult
+            nf_mult = min(2 ** n, 8)    #limit max channels size to ndf * 8.
+
+            sequence += [
+                nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=4, stride=2, padding=1),
+                norm_layer(ndf * nf_mult),
+                nn.LeakyReLU(0.2, True)
+            ]
+
+
+        nf_mult_prev = nf_mult
+        nf_mult = min(2 ** n_layers, 8)
+
+        "Second Last Layer"
+        sequence += [
+            nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=4, stride=1, padding=1),
+            norm_layer(ndf * nf_mult),
+            nn.LeakyReLU(0.2, True)
+        ]
+
+        "Final layer"
+        sequence += [nn.Conv2d(ndf * nf_mult, 1, kernel_size=4, stride=1, padding=1)]  # output 1 channel prediction map
+
+        self.model = nn.Sequential(*sequence)
+
+    def forward(self, input):
+        """forward through discriminator"""
+        return self.model(input)
 
 
