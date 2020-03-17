@@ -18,6 +18,7 @@ def args_parser():
     parser.add_argument('--input_nc', type=int, default=3, help='Input Number of Channels RGB = 3, Gray = 1')
     parser.add_argument('--output_nc', type=int, default=3, help='Output Number of Channels RGB = 3, Gray = 1')
     parser.add_argument('--loss_mode', type=str, default='lsgan', help='lsgan, WgGan, or Vanilla')
+    parser.add_argument('--direction', type=str, default='rgb', help='What is output? rgb or semantic?')
 
     "Training Hyperparameters"
     parser.add_argument('--epochs', type=int, default=50)

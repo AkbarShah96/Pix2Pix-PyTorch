@@ -33,12 +33,12 @@ class facades(Dataset):
                  root_dir = "C:\\Users\\akbar\\PycharmProjects\\CMP_Facades",
                  img_height = 256,
                  img_width = 256,
-                 transform = transforms.ToTensor()
+                 transform = None
                  ):
         self.root_dir = root_dir
         self.img_height = img_height
         self.img_width = img_width
-        self.transform = transform
+        self.transform = transforms.Compose(transform)
         self.load_data()
 
     def load_data(self):
@@ -73,16 +73,23 @@ class facades(Dataset):
 
         rgb = Image.open(rgb_item)
         semantic = Image.open(semantic_item)
-        sample['rgb'], sample['semantic'] = self.resize_randomcrop(rgb, semantic)
-        sample['rgb'] = self.transform(sample['rgb'])
-        sample['semantic'] = self.transform(sample['semantic'])
+        w, h = rgb.size
+
+        sample['rgb'] = self.transform(rgb)
+        sample['semantic'] = self.transform(semantic)
+
 
         return sample
 
 
 "Here I test the dataset to make sure everything is loading correctly"
 if __name__ == '__main__':
-    dataset = facades()
+    dataset = facades(transform = [
+    transforms.Resize((256, 256), Image.BICUBIC),
+    transforms.ToTensor(),
+    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+]
+)
     trainloader = DataLoader(dataset,
                              batch_size=1,
                              shuffle=False)
