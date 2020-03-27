@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 
 class down_sample(nn.Module):
-    def __init__(self,input_nc, ngf, batch_norm = True):
+    def __init__(self,input_nc, ngf, batch_norm = False):
         """
         This class down samples through the network
         :param input_nc: int
@@ -17,14 +17,14 @@ class down_sample(nn.Module):
 
         if batch_norm:
             self.sequence = nn.Sequential(
-                nn.Conv2d(input_nc, ngf, kernel_size=4, stride=2, padding='same', bias=False),
+                nn.Conv2d(input_nc, ngf, kernel_size=4, stride=2, padding=1, bias=False),
                 nn.BatchNorm2d(ngf),
-                nn.LeakyReLU
+                nn.LeakyReLU()
             )
         else:
             self.sequence = nn.Sequential(
-                nn.Conv2d(input_nc, ngf, kernel_size=4, stride=2, padding='same', bias=False),
-                nn.LeakyReLU
+                nn.Conv2d(input_nc, ngf, kernel_size=4, stride=2, padding=1, bias=False),
+                nn.LeakyReLU()
             )
 
     def forward(self, x):
@@ -43,17 +43,20 @@ class up_sample(nn.Module):
 
         if drop_out:
             self.sequence = nn.Sequential(
-                nn.ConvTranspose2d(input_nc, ngf, kernel_size=4, stride=2, padding='same', bias=False),
+                nn.ConvTranspose2d(input_nc, ngf, kernel_size=4, stride=2, padding=1, bias=False),
                 nn.BatchNorm2d(ngf),
-                nn.Dropout(0.5),
-                nn.LeakyReLU
+                nn.Dropout(0.2),
+                nn.LeakyReLU()
             )
         else:
             self.sequence = nn.Sequential(
-                nn.ConvTranspose2d(input_nc, ngf, kernel_size=4, stride=2, padding='same', bias=False),
+                nn.ConvTranspose2d(input_nc, ngf, kernel_size=4, stride=2, padding=1, bias=False),
                 nn.BatchNorm2d(ngf),
-                nn.LeakyReLU
+                nn.LeakyReLU()
             )
+
+    def forward(self, x):
+        return self.sequence(x)
 
 
 class Generator(nn.Module):
@@ -67,7 +70,7 @@ class Generator(nn.Module):
         """
         super(Generator, self).__init__()
         self.down_stack = nn.Sequential(
-                        down_sample(input_nc, ngf, batch_norm=False),
+                        down_sample(input_nc, ngf),
                         down_sample(ngf, ngf * 2),
                         down_sample(ngf * 2, ngf * 4),
                         down_sample(ngf * 4, ngf * 8),
@@ -81,13 +84,14 @@ class Generator(nn.Module):
                         up_sample(ngf * 8, ngf * 8, drop_out= True),
                         up_sample(ngf * 8, ngf * 8, drop_out= True),
                         up_sample(ngf * 8, ngf * 8, drop_out= True),
-                        up_sample(ngf * 8, ngf * 8),
+                        up_sample(ngf * 8, ngf * 8, drop_out= True),
                         up_sample(ngf * 8, ngf * 4),
                         up_sample(ngf * 4, ngf * 2),
-                        up_sample(ngf * 2, ngf))
+                        up_sample(ngf * 2, ngf),
+                        up_sample(ngf, ngf))
 
         self.last = nn.Sequential(
-            nn.ConvTranspose2d(ngf, output_nc,kernel_size=4, stride=2, padding='same'),
+            nn.ConvTranspose2d(ngf, output_nc, kernel_size=4, stride=2, padding=1),
             nn.Tanh()
         )
     def forward(self, x):
@@ -102,9 +106,9 @@ class Generator(nn.Module):
         "Upsampling Through Model"
         for up, skip in zip(self.up_stack, skips):
             x = up(x)
-            x = torch.cat(x,skip)
-
-        return self.last(x)
+            x = torch.cat((x, skip), dim=1)
+        x = self.last(x)
+        return x
 
 class NLayerDiscriminator(nn.Module):
     """Defines a PatchGAN discriminator, adopted from Junyaz
