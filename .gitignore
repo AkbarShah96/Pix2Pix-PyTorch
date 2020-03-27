@@ -125,6 +125,6 @@ dmypy.json
 .pyre/
 
 .checkpoints/
+.checkpoints
 
 .idea
-
