@@ -82,16 +82,16 @@ class Generator(nn.Module):
 
         self.up_stack = nn.Sequential(
                         up_sample(ngf * 8, ngf * 8, drop_out= True),
-                        up_sample(ngf * 8, ngf * 8, drop_out= True),
-                        up_sample(ngf * 8, ngf * 8, drop_out= True),
-                        up_sample(ngf * 8, ngf * 8, drop_out= True),
-                        up_sample(ngf * 8, ngf * 4),
-                        up_sample(ngf * 4, ngf * 2),
-                        up_sample(ngf * 2, ngf),
-                        up_sample(ngf, ngf))
-
+                        up_sample(ngf * 16, ngf * 8, drop_out= True),
+                        up_sample(ngf * 16, ngf * 8, drop_out= True),
+                        up_sample(ngf * 16, ngf * 8, drop_out= True),
+                        up_sample(ngf * 16, ngf * 4),
+                        up_sample(ngf * 8, ngf * 2),
+                        up_sample(ngf * 4, ngf),
+                        nn.Upsample(scale_factor=2),
+        )
         self.last = nn.Sequential(
-            nn.ConvTranspose2d(ngf, output_nc, kernel_size=4, stride=2, padding=1),
+            nn.ConvTranspose2d(ngf*2, output_nc, kernel_size=4, stride=2, padding=1),
             nn.Tanh()
         )
     def forward(self, x):

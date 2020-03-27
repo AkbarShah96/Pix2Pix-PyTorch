@@ -38,7 +38,7 @@ class dataset(Dataset):
     def __init__(self,
                  root_dir = "C:\\Users\\akbar\\PycharmProjects\\Pix2Pix-Data",
                  dataset ="facades",
-                 mode ='train\\',
+                 mode ='train',
                  direction='AtoB',
                  transform = None
                  ):

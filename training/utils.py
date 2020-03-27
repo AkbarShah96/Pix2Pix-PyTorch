@@ -2,12 +2,17 @@
 This file contains functions that help in the training procedure.
 """
 "Imports"
+import os
+import datetime
+import torch
 import argparse
 
 
 
 def args_parser():
     parser = argparse.ArgumentParser(description='Pix2Pix GAN Parameters')
+    parser.add_argument('--name', type=str, default='{}'.format(datetime.datetime.now().strftime('%y%m%d-%H%M%S')))
+    parser.add_argument('--load', type=str, help="File to test")
     "Model and Data Selection"
     parser.add_argument('--discriminator', type=str, default='n_layers')
     parser.add_argument('--generator', type=str, default='UNet')
@@ -22,11 +27,10 @@ def args_parser():
     parser.add_argument('--loss_mode', type=str, default='lsgan', help='lsgan, WgGan, or Vanilla')
     parser.add_argument('--dataset', type=str, default='facades', help='facades or maps')
     parser.add_argument('--direction', type=str, default='AtoB', help='RGB = A, Semantic = B')
-    parser.add_argument('--mode', type=str, default='train', help='train,val,test')
 
     "Training Hyperparameters"
-    parser.add_argument('--epochs', type=int, default=50)
-    parser.add_argument('--learning_rate', type=int, default=0.0001)
+    parser.add_argument('--epochs', type=int, default=100)
+    parser.add_argument('--learning_rate', type=int, default=0.00005)
     parser.add_argument('--batch_size', type=int, default=1, help='number of images in a batch')
     parser.add_argument('--optimizer', type=str, default='Adam')
     parser.add_argument('--schedular', type=str, default='Step_LR')
@@ -35,3 +39,30 @@ def args_parser():
     args = parser.parse_args()
     return vars(args)
 
+def save(state, checkpoint):
+    """
+    :param state: State dict
+    :param checkpoint: Path to checkpoint
+    :return: None, just saves the best dict
+    """
+    "Path to checkpoint"
+    path = os.path.join(checkpoint, 'best.pth.tar')
+    "If Path does not exist, create it"
+    if not os.path.exists(checkpoint):
+        print("Creating Directory {}".format(checkpoint))
+        os.mkdir(checkpoint)
+    "Save the state dict"
+    torch.save(state, path)
+
+def load(net, checkpoint):
+    """
+    :param net: the model to load
+    :param checkpoint: the path to model
+    :return: model with loaded weights
+    """
+    if not os.path.exists(checkpoint):
+        raise FileNotFoundError("File does not exist {}".format(checkpoint))
+    checkpoint = torch.load(checkpoint)
+    net.load_state_dict(checkpoint['state_dict'])
+
+    return checkpoint

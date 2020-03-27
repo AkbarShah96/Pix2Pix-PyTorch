@@ -55,7 +55,7 @@ class GANLossD(torch.nn.Module):
             A label tensor filled with ground truth label, and with the size of the input
         """
         if target_is_real:
-            label = random.randrange(self.real_label_lower,self.real_label_upper, 1)/10 # Range between 0.8 - 1.2 with a step size of 0.1
+            label = random.randrange(self.real_label_lower, self.real_label_upper, 1)/10.0 # Range between 0.8 - 1.2 with a step size of 0.1
             label = torch.tensor(label).cuda()
             self.register_buffer('real_label',label)
             target_tensor = self.real_label
