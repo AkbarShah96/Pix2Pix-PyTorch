@@ -58,23 +58,25 @@ def train():
                                        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
     train_loader = DataLoader(train_data_loader,
-                              batch_size=args['batch_size'],
+                              batch_size=args['train_batch_size'],
                               shuffle=True,
-                              num_workers=0)
+                              num_workers=0,
+                              drop_last=True)
 
     val_loader = DataLoader(val_data_loader,
-                              batch_size=args['batch_size'],
+                              batch_size=args['val_batch_size'],
                               shuffle=False,
-                              num_workers=0)
+                              num_workers=0,
+                              drop_last=True)
 
     "Define Models"
     generator = Generator(args["ngf"],
                           args['input_nc'],
                           args['output_nc'],
-                          args['batch_norm'])
+                          )
 
     discriminator = NLayerDiscriminator(ndf=args['ndf'],
-                                        input_nc=args['input_nc']*2,
+                                        input_nc=args['input_nc']+args['output_nc'],
                                         n_layers=args['n_layers'],)
 
     generator.to(device)
@@ -83,11 +85,13 @@ def train():
 
     optimizerG = torch.optim.Adam(generator.parameters(),
                                   lr=args['learning_rate'],
+                                  betas=(0.5, 0.999),
                                   weight_decay=0.005,
                                   eps=1e-8)
 
     optimizerD = torch.optim.Adam(discriminator.parameters(),
                                   lr=args['learning_rate'],
+                                  betas=(0.5, 0.999),
                                   weight_decay=0.005,
                                   eps=1e-8)
 
@@ -128,17 +132,35 @@ def train():
             fake_batch = torch.cat((input, fake_output), 1)
             fake_batch = fake_batch.detach()
             pred_fake = discriminator(fake_batch)
-            loss_D_fake = discriminator_loss(pred_fake, False)
+
+            if i % args['label_switch'] == 0:
+                "Make "
+                loss_D_fake = discriminator_loss(pred_fake, True)
+            else:
+                loss_D_fake = discriminator_loss(pred_fake, False)
 
             "Train on Real"
             real_batch = torch.cat((input, target), 1)
             pred_real = discriminator(real_batch)
-            loss_D_real = discriminator_loss(pred_real, True)
+
+            if i % args['label_switch'] == 0:
+                loss_D_real = discriminator_loss(pred_real, False)
+            else:
+                loss_D_real = discriminator_loss(pred_real, True)
 
             "Combine Loss and Backprop"
             loss_disc = 0.5*(loss_D_real+loss_D_fake)
-            loss_disc.backward()
-            optimizerD.step()
+
+            if (epoch <=50):   # This is only true for first two epochs if loss limit is active
+                if loss_disc > 0.25:         # We will only optimize if loss > 0.25
+                    loss_disc.backward()
+                    optimizerD.step()
+            else:                            # This is active for rest of the epochs
+                loss_disc.backward()
+                optimizerD.step()
+
+            # loss_disc.backward()
+            # optimizerD.step()
 
             "Generator Training"
             set_requires_grad(discriminator, False)
@@ -156,7 +178,6 @@ def train():
             torch.cuda.empty_cache()
 
             print("Epoch:", epoch, "Iter:", i, "L1 loss:", l1.item()/100.0, "Disc Loss Real:", loss_D_real.item(), "Disc Loss Fake", loss_D_fake.item())
-
             del loss_D_fake, loss_D_real, loss_G_GAN, loss_disc, loss_gen, fake_batch, fake_output, real_batch, pred_real, pred_fake
 
         generator.eval()
@@ -173,7 +194,7 @@ def train():
 
             torch.cuda.empty_cache()
 
-            print("Epoch:", epoch, "Iter:", i, "L1 loss:", val_loss.item()/100.0)
+            print("Epoch:", epoch, "Iter:", i, "L1 loss:", val_loss.item())
 
         if v_loss < best_v_loss:
             best_v_loss = v_loss

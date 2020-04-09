@@ -1,9 +1,12 @@
 """
 This file contains a PyTorch dataloader for CMP Facade Dataset.
+It only supports the datasets from the link provided.
 You can learn how to write your own custom dataloader on:
 https://pytorch.org/tutorials/beginner/data_loading_tutorial.html
 
 To Download Datasets : https://people.eecs.berkeley.edu/~tinghuiz/projects/pix2pix/datasets/
+
+
 """
 
 import os
@@ -39,7 +42,7 @@ class dataset(Dataset):
                  root_dir = "C:\\Users\\akbar\\PycharmProjects\\Pix2Pix-Data",
                  dataset ="facades",
                  mode ='train',
-                 direction='AtoB',
+                 direction='BtoA',
                  transform = None
                  ):
         self.root_dir = root_dir
@@ -78,23 +81,18 @@ class dataset(Dataset):
             right = image.crop((w/2, 0, w, h))
             sample['input'] = self.transform(left)
             sample['target'] = self.transform(right)
-        else:
-            right = image.crop((0, 0, w / 2, h))
-            left = image.crop((w / 2, 0, w, h))
-            sample['target'] = self.transform(left)
+        elif self.direction == 'BtoA':
+            left = image.crop((0, 0, w / 2, h))
+            right = image.crop((w / 2, 0, w, h))
             sample['input'] = self.transform(right)
-
-
-
-
-
+            sample['target'] = self.transform(left)
 
         return sample
 
 
 # "Here I test the dataset to make sure everything is loading correctly"
 # if __name__ == '__main__':
-#     dataset = facades(transform = [
+#     dataset = dataset(transform = [
 #     transforms.Resize((256, 256), Image.BICUBIC),
 #     transforms.ToTensor(),
 #     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),

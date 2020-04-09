@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 
 class down_sample(nn.Module):
-    def __init__(self,input_nc, ngf, batch_norm = False):
+    def __init__(self,input_nc, ngf, drop_out = False):
         """
         This class down samples through the network
         :param input_nc: int
@@ -15,21 +15,22 @@ class down_sample(nn.Module):
         """
         super(down_sample, self).__init__()
 
-        if batch_norm:
+        if drop_out:
             self.sequence = nn.Sequential(
                 nn.Conv2d(input_nc, ngf, kernel_size=4, stride=2, padding=1, bias=False),
                 nn.BatchNorm2d(ngf),
+                nn.Dropout(0.2),
                 nn.LeakyReLU()
             )
         else:
             self.sequence = nn.Sequential(
                 nn.Conv2d(input_nc, ngf, kernel_size=4, stride=2, padding=1, bias=False),
+                nn.BatchNorm2d(ngf),
                 nn.LeakyReLU()
             )
 
     def forward(self, x):
         return self.sequence(x)
-
 
 class up_sample(nn.Module):
     def __init__(self, input_nc, ngf, drop_out = False):
@@ -45,7 +46,7 @@ class up_sample(nn.Module):
             self.sequence = nn.Sequential(
                 nn.ConvTranspose2d(input_nc, ngf, kernel_size=4, stride=2, padding=1, bias=False),
                 nn.BatchNorm2d(ngf),
-                nn.Dropout(0.2),
+                nn.Dropout(0.5),
                 nn.LeakyReLU()
             )
         else:
@@ -57,7 +58,6 @@ class up_sample(nn.Module):
 
     def forward(self, x):
         return self.sequence(x)
-
 
 class Generator(nn.Module):
     def __init__(self, ngf,input_nc, output_nc, batch_norm = False):
@@ -77,7 +77,7 @@ class Generator(nn.Module):
                         down_sample(ngf * 8, ngf * 8),
                         down_sample(ngf * 8, ngf * 8),
                         down_sample(ngf * 8, ngf * 8),
-                        down_sample(ngf * 8, ngf * 8,)
+                        down_sample(ngf * 8, ngf * 8)
         )
 
         self.up_stack = nn.Sequential(
@@ -88,9 +88,10 @@ class Generator(nn.Module):
                         up_sample(ngf * 16, ngf * 4),
                         up_sample(ngf * 8, ngf * 2),
                         up_sample(ngf * 4, ngf),
-                        nn.Upsample(scale_factor=2),
+                        nn.Upsample(scale_factor=2, mode='bilinear'),
         )
         self.last = nn.Sequential(
+            nn.ReflectionPad2d(1),
             nn.ConvTranspose2d(ngf*2, output_nc, kernel_size=4, stride=2, padding=1),
             nn.Tanh()
         )
@@ -163,5 +164,4 @@ class NLayerDiscriminator(nn.Module):
     def forward(self, input):
         """forward through discriminator"""
         return self.model(input)
-
 
