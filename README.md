@@ -80,7 +80,7 @@ L2 is a popular loss for image processing tasks but it produces blurry results a
 The loss that the PatchGAN uses is from [LSGAN](https://arxiv.org/pdf/1611.04076.pdf). The loss function is able to move the fake samples closer to the decision boundary between real and fake samples. LSGAN moves the fake samples closer to the real samples since the loss function penalizes samples that lie too far from the decision boundary on the correct side. If the samples are on the correct side of the decision boundary but still far from the real data, they tend to suffer from vanishing gradient problem. LSGAN remedies this problem since it forces far samples to be closer. 
 
 <p align="center">
-  <img src="readme/LSGAN.png" width="300px"/>
+  <img src="readme/LSGAN.png" width="600px"/>
 </p>
 
 In the equation above, a is the fake sample and b is the real sample, and c is the value that the generator wants the discriminator to believe for fake data.  
