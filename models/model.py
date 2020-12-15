@@ -60,7 +60,7 @@ class up_sample(nn.Module):
         return self.sequence(x)
 
 class Generator(nn.Module):
-    def __init__(self, ngf,input_nc, output_nc, batch_norm = False):
+    def __init__(self, ngf,input_nc, output_nc):
         """
         This is a Generator architecture with skip connections.
         :param ngf: number of filters
@@ -91,7 +91,6 @@ class Generator(nn.Module):
                         nn.Upsample(scale_factor=2, mode='bilinear'),
         )
         self.last = nn.Sequential(
-            nn.ReflectionPad2d(1),
             nn.ConvTranspose2d(ngf*2, output_nc, kernel_size=4, stride=2, padding=1),
             nn.Tanh()
         )

@@ -10,10 +10,6 @@ import random
 import torch.nn as nn
 
 
-"""
-Note: GAN loss for discriminator contains my implementation of one-sided label smoothing.
-"""
-
 class GANLossD(torch.nn.Module):
     """Define different GAN objectives.
 
@@ -21,7 +17,7 @@ class GANLossD(torch.nn.Module):
     that has the same size as the input.
     """
 
-    def __init__(self, gan_mode, target_real_label_upper=1.2,target_real_label_lower=0.8, target_fake_label=0.0):
+    def __init__(self, gan_mode, target_real_label_upper=13,target_real_label_lower=8, target_fake_label=0.0):
         """ Initialize the GANLoss class.
 
         Parameters:
@@ -55,7 +51,8 @@ class GANLossD(torch.nn.Module):
             A label tensor filled with ground truth label, and with the size of the input
         """
         if target_is_real:
-            label = random.randrange(self.real_label_lower, self.real_label_upper, 1)/10.0 # Range between 0.8 - 1.2 with a step size of 0.1
+            # One Sided Label Smoothing (Real Label [0.8,1.2]
+            label = random.randrange(self.real_label_lower, self.real_label_upper, 1)/10.0
             label = torch.tensor(label).cuda()
             self.register_buffer('real_label',label)
             target_tensor = self.real_label

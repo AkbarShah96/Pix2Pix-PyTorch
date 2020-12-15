@@ -1,0 +1,44 @@
+SETTINGS:
+  name: Pix2Pix
+  machine: office
+  gpu: True
+  log_path: C:\Users\akbar\PycharmProjects\Pix2Pix-PyTorch\logs
+  mode: train
+  num_workers: 4
+RESUME:
+  resume: False
+  resume_path: None
+DATA:
+  dataset: facades # [facades, maps]
+  data_path: C:\Users\akbar\PycharmProjects\Pix2Pix-Data
+  direction: BtoA  # [BtoA, AtoB]
+  batch_size: 12
+MODEL:
+  generator: UNet
+  discriminator: n_layers
+  n_layers: 3
+  use_dropout: True
+  drop_out: 0.5
+  ngf: 64
+  ndf: 32
+  input_nc: 3
+  output_nc: 3
+LOSS:
+  loss_mode: lsgan # [lsgan, wgangp, vanilla]
+  label_switch_noise: 10
+  l1_weight: 100
+OPTIMIZATION:
+  epochs: 100
+  optimizer: Adam
+  gen_learning_rate: 0.0005
+  disc_learning_rate: 0.0005
+  weight_decay: 0.005
+  eps: 1.e-9
+  schedular: Step_LR
+  lr_decay: 0.8
+EVALUATION:
+  evaluation_path: C:\Users\akbar\PycharmProjects\Pix2Pix-PyTorch\logs
+  plot: True
+
+
+

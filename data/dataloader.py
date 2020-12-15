@@ -39,7 +39,7 @@ Note: In order to use this file, you need to organise your data in the following
 
 class dataset(Dataset):
     def __init__(self,
-                 root_dir = "C:\\Users\\akbar\\PycharmProjects\\Pix2Pix-Data",
+                 root_dir = "",
                  dataset ="facades",
                  mode ='train',
                  direction='BtoA',
