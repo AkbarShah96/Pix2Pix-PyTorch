@@ -11,6 +11,7 @@ Status: *Finished*
 ```shell
 conda install pytorch=1.3.1 torchvision=0.2.1 -c pytorch
 pip install tensorboardX==1.4
+pip install easydict
 ```
 
 #### Dataset
