@@ -1,6 +1,6 @@
 # Pix2Pix-PyTorch
  
-This repo contains a simplified implementation of pix2pix which is one of my favourite GANs. It contains a very basic and straightforward implementation. I briefly discuss some concepts below, feel free to ask questions!
+This repo contains a simplified implementation of pix2pix which is one of my favourite GANs. I briefly discuss some concepts below, feel free to ask questions!
 
 Original Paper: [Image-to-Image Translation with Conditional Adversarial Networks](https://arxiv.org/pdf/1611.07004.pdf) 
 
