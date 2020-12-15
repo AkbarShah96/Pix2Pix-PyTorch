@@ -55,13 +55,13 @@ that we are trying to produce. Moreover, GANs produce random outputs where as in
 output can be specied. This gives us the benet of directing the output of the GAN to our
 requirements.
 
-#### Generator
+### Generator
 The architecture of the generator usually depends on the appropriate type of data it will
 produce. In the case of images, we usually consider the convolutional neural networks like
 Resnets, U-Net etc. The generator learns to produce realistic data distribution with which it tries to
 fool the discriminator. This repositary uses a basic U-Net with skip connections. 
 
-#### Markovian Discriminator (PatchGAN)
+### Markovian Discriminator (PatchGAN)
 A PatchGAN is a discriminator architecture which penalizes structure within a certain patch and classifies if each patch is real or fake. 
 The PatchGAN architecture consists of fully convolutional layers, hence the output is a feature map consisting of classification (real or fake) of the patch. 
 The values in the feature maps are like probabilities of being real or fake. The size of the patches can be controlled with the number of layers and strided convolutions in the discriminator. 
@@ -74,7 +74,7 @@ Therefore, great emphasis is put on style and texture of the image.
 </p>
 
 
-#### Loss Functions 
+### Loss Functions 
 L2 is a popular loss for image processing tasks but it produces blurry results and does not correlate well with image quality as humans perceive it. In comparison, the L1 loss has improved performance but it's still not optimal. Both of these losses do not encourage high-frequency crispness but they do capture low frequencies well. Therefore, pix2pix uses L1 for correctness at low frequencies and restricts the PatchGAN for structure at high frequencies. For modelling high frequencies, the focus is restricted to structure in local image patches. 
 
 The loss that the PatchGAN uses is from [LSGAN](https://arxiv.org/pdf/1611.04076.pdf). The loss function is able to move the fake samples closer to the decision boundary between real and fake samples. LSGAN moves the fake samples closer to the real samples since the loss function penalizes samples that lie too far from the decision boundary on the correct side. If the samples are on the correct side of the decision boundary but still far from the real data, they tend to suffer from vanishing gradient problem. LSGAN remedies this problem since it forces far samples to be closer. 
@@ -85,8 +85,9 @@ The loss that the PatchGAN uses is from [LSGAN](https://arxiv.org/pdf/1611.04076
 
 In the equation above, a is the fake sample and b is the real sample, and c is the value that the generator wants the discriminator to believe for fake data.  
 
-#### Training Procedure
-##### Discriminator
+### Training Procedure
+
+#### Discriminator
 
 <p align="center">
   <img src="readme/Discriminator.png" width="600px"/>
@@ -101,7 +102,7 @@ The ground truth real image is paired with the input and passed through the disc
 The loss obtained is the discriminator's loss on real images. When computing the loss for the discriminator, 
 the discriminator is aware if its looking at real image or a fake image therefore it updates based on its performance by taking the average of the two losses. 
 
-##### Generator
+#### Generator
 <p align="center">
   <img src="readme/generator.png" width="600px"/>
 </p>
@@ -113,13 +114,13 @@ The L1 loss for the generator is also computed between the fake output and the g
 The L1 loss is weighted 100 times more than the generator's LSGAN loss. The sum of the two losses is used to update the generator's weights.
 
 
-#### Stability Measures
+### Stability Measures
 The GAN framework is highly unstable but several tricks can be used to stabilize it. This
 section will present some measures undertaken to ensure stable training. Most of these focus
 on making the discriminator weaker in order to ensure that the generator's gradients do not
 vanish which was usually the case without these measures.
 
-##### One-Sided Label Smoothing
+#### One-Sided Label Smoothing
 Label smoothing is an old technique which has recently proved to reduce the weakness of neural networks to adversarial examples. 
 Without label smoothing a classifier makes very confident predictions on the training data. When the values are outside where the training data is concentrated, 
 the model linearly extrapolates to make extreme predictions which hurts the test and adversarial accuracy. This technique will penalize the discriminator when its too confident about its predictions. 
@@ -128,13 +129,13 @@ We do one sided label smoothing because where the probability distribution of da
 the incorrect samples from the distribution of the model have no incentive to move closer to data. Practically, we soften the real label to be randomly between (0.8, 1.2) in the discriminator's GAN loss function. 
 You can read more on the topic [ Improved Techniques for Training GANs section 3.4](https://arxiv.org/pdf/1606.03498.pdf).
 
-##### Label Switching
+#### Label Switching
 Since the discriminator is strong during the early stages of training, it is recommended to
 make the labels noisy. Occasionally we switch the labels of the real and fake images in order
 to weaken the discriminator. It is important to nd a good schedule to switch the labels as
 too much noise can lead to inecient training. You can read more on the topic [here](https://github.com/soumith/ganhacks).
 
-##### Adding Noise To Inputs
+#### Adding Noise To Inputs
 Some researchers have suggested to include artifical decaying gaussian white noise to the inputs of the discriminator so that its job becomes more difficult. 
 There is good article about it by [Ferenc Huszar](https://www.inference.vc/instance-noise-a-trick-for-stabilising-gan-training/). This [paper](https://openreview.net/pdf?id=Hk4_qw5xe) also 
 provides good insight into this issue.
